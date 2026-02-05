@@ -1,0 +1,22 @@
+# Fed-Vis Main Configuration
+# Override via CLI: python -m fedvis.scripts.train_local training.epochs=50
+
+defaults:
+  - data: fets
+  - model: attention_unet
+  - training: default
+  - federation: default
+  - _self_
+
+# Paths (override these for your environment)
+paths:
+  data_root: ${oc.env:FEDVIS_DATA_ROOT,/data}
+  output_dir: ${oc.env:FEDVIS_OUTPUT_DIR,./outputs}
+  checkpoint_dir: ${paths.output_dir}/checkpoints
+  log_dir: ${paths.output_dir}/logs
+
+# Random seed for reproducibility
+seed: 42
+
+# Device configuration
+device: cuda  # cuda or cpu

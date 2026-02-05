@@ -1,0 +1,13 @@
+# Large data directories
+data/raw/
+data/processed/
+
+# Model weights
+*.pth
+*.pt
+*.ckpt
+*.h5
+
+# Caches
+__pycache__/
+.pytest_cache/

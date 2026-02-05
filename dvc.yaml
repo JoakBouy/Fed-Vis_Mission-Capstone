@@ -1,0 +1,53 @@
+# DVC Pipeline for Fed-Vis Data Harmonization
+#
+# This pipeline automates the preprocessing of heterogeneous medical imaging
+# datasets into a unified format for federated learning.
+#
+# Usage:
+#   dvc repro                    # Run entire pipeline
+#   dvc repro harmonize_brats    # Run single stage
+#   dvc dag                      # Visualize pipeline DAG
+#
+# Requirements:
+#   - Raw BraTS data in data/raw/brats/
+#   - Raw TCGA data in data/raw/tcga/ (optional)
+#   - Raw Prostate data in data/raw/prostate/ (optional)
+
+stages:
+  # Stage 1: Harmonize BraTS (Brain Tumor) dataset
+  harmonize_brats:
+    cmd: python -m fedvis.data.harmonize --dataset brats --input data/raw/brats --output data/processed/node_brain --size 64 128 128
+    deps:
+      - src/fedvis/data/harmonize.py
+      - data/raw/brats
+    outs:
+      - data/processed/node_brain
+    metrics:
+      - data/processed/node_brain/stats.json:
+          cache: false
+
+  # Stage 2: Harmonize TCGA-LGG dataset (second federated node)
+  harmonize_tcga:
+    cmd: python -m fedvis.data.harmonize --dataset tcga --input data/raw/tcga --output data/processed/node_tcga --size 64 128 128
+    deps:
+      - src/fedvis/data/harmonize.py
+      - data/raw/tcga
+    outs:
+      - data/processed/node_tcga
+
+  # Stage 3: Validate processed data
+  validate_data:
+    cmd: python -m fedvis.data.validate --input data/processed
+    deps:
+      - src/fedvis/data/validate.py
+      - data/processed/node_brain
+      - data/processed/node_tcga
+    metrics:
+      - reports/data_validation.json:
+          cache: false
+
+# Plots for data analysis (optional)
+plots:
+  - reports/data_validation.json:
+      x: dataset
+      y: num_samples

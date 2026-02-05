@@ -1,0 +1,29 @@
+# Attention U-Net Model Configuration
+
+name: attention_unet
+description: "3D Attention U-Net for Medical Image Segmentation"
+
+# Architecture
+in_channels: 1      # Single modality input
+out_channels: 1     # Binary segmentation
+base_filters: 32    # First encoder layer (doubles each level)
+depth: 4            # Number of encoder/decoder levels
+
+# Encoder filter progression: [32, 64, 128, 256, 512]
+# Bottleneck: 512 channels
+
+# Normalization
+norm_type: instance  # batch, instance, or group
+num_groups: 8        # For group norm only
+
+# Activation
+activation: relu     # relu or leaky_relu
+leaky_slope: 0.01    # For leaky_relu
+
+# Dropout
+dropout_rate: 0.0    # Dropout in bottleneck (0.0 = disabled)
+
+# Attention gate configuration
+attention:
+  enabled: true
+  intermediate_channels: null  # Auto: input_channels // 2

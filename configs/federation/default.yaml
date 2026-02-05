@@ -1,0 +1,46 @@
+# Federated Learning Configuration
+
+# Flower server settings
+server:
+  address: "0.0.0.0:8080"
+  num_rounds: 20
+
+# Client configuration
+client:
+  num_clients: 3
+  min_fit_clients: 3
+  min_evaluate_clients: 3
+  fraction_fit: 1.0       # Fraction of clients for training
+  fraction_evaluate: 1.0  # Fraction for evaluation
+
+# Client assignments
+clients:
+  - id: brain
+    dataset: fets
+    site: "1"  # Use site 1 for brain client
+  - id: prostate
+    dataset: prostate
+    site: BIDMC
+  - id: lung
+    dataset: lung
+    site: "1"
+
+# Aggregation strategy
+strategy:
+  name: fedavg  # fedavg, fedprox, fedadam
+  # FedProx settings:
+  # proximal_mu: 0.01
+  # FedAdam settings:
+  # server_lr: 0.01
+  # beta1: 0.9
+  # beta2: 0.99
+
+# Local training per round
+local_epochs: 1
+local_batch_size: ${training.batch_size}
+
+# Privacy (for future extension)
+privacy:
+  differential_privacy: false
+  # noise_multiplier: 1.0
+  # max_grad_norm: 1.0
