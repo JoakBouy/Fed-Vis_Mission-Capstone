@@ -113,14 +113,6 @@ docker build -t fed-vis:latest .
 docker run -p 8000:8000 fed-vis:latest
 ```
 
-## Development Roadmap
-
-- [x] Sprint 1: Data pipeline and harmonization
-- [x] Sprint 2: Attention U-Net architecture
-- [x] Sprint 3: FastAPI inference service
-- [ ] Sprint 4: Federated learning with Flower
-- [ ] Sprint 5: React + Three.js visualization
-
 ## References
 
 - Oktay et al. (2018) - Attention U-Net: Learning Where to Look for the Pancreas
@@ -138,3 +130,7 @@ BSc. Software Engineering
 African Leadership University
 
 Supervisor: Dirac Murairi
+
+## Recording
+
+Link to Demo Recording
