@@ -45,7 +45,7 @@ fed_vis/
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/fed-vis.git
+git clone https://github.com/JoakBouy/fed-vis_Mission-Capstone.git
 cd fed-vis
 
 # Create virtual environment
@@ -68,7 +68,7 @@ python -m pytest tests/ -v
 
 ```bash
 pip install jupyter
-jupyter notebook notebooks/01_demo_fedvis.ipynb
+jupyter notebook notebooks/demo_fedvis.ipynb
 ```
 
 ### Run the API Server
