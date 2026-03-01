@@ -1,0 +1,96 @@
+# Fed-Vis: 3-Node Federated Learning + Inference
+#
+# This shows the full architecture from the proposal:
+#   - 3 hospital nodes (KNH/brain, MTRH/lung, AKU/prostate)
+#   - 1 aggregation server (FedAvg)
+#   - 1 inference API (FastAPI + trained model)
+#
+# For demo: docker-compose up inference
+# For federation concept: docker-compose up
+#
+# Note: In the real deployment, each hospital node would run
+# on its own machine inside the hospital network. This compose
+# file simulates all 3 on one machine for demonstration.
+
+version: "3.8"
+
+services:
+  # ── Inference API (the deliverable) ─────────────────
+  inference:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./outputs:/app/outputs
+    environment:
+      - CHECKPOINT_PATH=/app/outputs/federated/global_model.pth
+    command: >
+      uvicorn fedvis.api.app:app --host 0.0.0.0 --port 8000
+
+  # ── Federation Server (aggregates weights) ──────────
+  fed-server:
+    build: .
+    ports:
+      - "8080:8080"
+    command: >
+      python -c " import flwr as fl; strategy = fl.server.strategy.FedAvg(
+        min_fit_clients=3,
+        min_available_clients=3,
+      ); fl.server.start_server(
+        server_address='0.0.0.0:8080',
+        config=fl.server.ServerConfig(num_rounds=20),
+        strategy=strategy,
+      )"
+    profiles:
+      - federation
+
+  # ── Hospital Node: KNH (Brain / FeTS) ──────────────
+  node-knh:
+    build: .
+    volumes:
+      - ./data/FeTS2022:/app/data
+    environment:
+      - NODE_NAME=knh-brain
+      - DATASET=fets
+      - SITE=1
+      - SERVER_ADDRESS=fed-server:8080
+    depends_on:
+      - fed-server
+    command: >
+      python -c " print('KNH Brain node — connects to fed-server:8080'); print('In production: runs inside KNH network'); print('Data never leaves this container'); "
+    profiles:
+      - federation
+
+  # ── Hospital Node: MTRH (Lung CT) ──────────────────
+  node-mtrh:
+    build: .
+    volumes:
+      - ./data/CTLung:/app/data
+    environment:
+      - NODE_NAME=mtrh-lung
+      - DATASET=lung
+      - SITE=1
+      - SERVER_ADDRESS=fed-server:8080
+    depends_on:
+      - fed-server
+    command: >
+      python -c " print('MTRH Lung node — connects to fed-server:8080'); print('In production: runs inside MTRH network'); print('Data never leaves this container'); "
+    profiles:
+      - federation
+
+  # ── Hospital Node: Aga Khan (Prostate) ──────────────
+  node-aku:
+    build: .
+    volumes:
+      - ./data/Prostate_processed:/app/data
+    environment:
+      - NODE_NAME=aku-prostate
+      - DATASET=prostate
+      - SITE=BIDMC
+      - SERVER_ADDRESS=fed-server:8080
+    depends_on:
+      - fed-server
+    command: >
+      python -c " print('Aga Khan Prostate node — connects to fed-server:8080'); print('In production: runs inside AKU network'); print('Data never leaves this container'); "
+    profiles:
+      - federation

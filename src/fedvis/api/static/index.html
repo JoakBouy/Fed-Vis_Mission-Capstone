@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fed-Vis | Medical Image Segmentation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/>
+                    <path d="M12 8v8M8 12h8"/>
+                </svg>
+                <span>Fed-Vis</span>
+            </div>
+            <div class="status" id="status">
+                <span class="dot"></span>
+                <span id="status-text">Connecting...</span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Upload Section -->
+            <section class="card upload-card">
+                <h2>Upload MRI Volume</h2>
+                <p class="subtitle">Upload a 3D medical volume (.npy file) for tumor segmentation</p>
+
+                <div class="dropzone" id="dropzone">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <p>Drag & drop your <strong>.npy</strong> file here</p>
+                    <span class="or">or</span>
+                    <button class="btn btn-outline" onclick="document.getElementById('file-input').click()">
+                        Browse Files
+                    </button>
+                    <input type="file" id="file-input" accept=".npy" hidden>
+                </div>
+
+                <div class="file-info" id="file-info" style="display:none;">
+                    <div class="file-name" id="file-name"></div>
+                    <button class="btn btn-primary" id="run-btn" onclick="runSegmentation()">
+                        Run Segmentation
+                    </button>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section class="card results-card" id="results" style="display:none;">
+                <h2>Segmentation Results</h2>
+
+                <div class="stats-grid" id="stats-grid"></div>
+
+                <div class="viewer">
+                    <div class="viewer-panel">
+                        <h3>Input Volume</h3>
+                        <canvas id="canvas-input" width="256" height="256"></canvas>
+                    </div>
+                    <div class="viewer-panel">
+                        <h3>Segmentation Mask</h3>
+                        <canvas id="canvas-mask" width="256" height="256"></canvas>
+                    </div>
+                    <div class="viewer-panel">
+                        <h3>Overlay</h3>
+                        <canvas id="canvas-overlay" width="256" height="256"></canvas>
+                    </div>
+                </div>
+
+                <div class="slice-control">
+                    <label for="slice-slider">Slice:</label>
+                    <input type="range" id="slice-slider" min="0" max="63" value="32">
+                    <span id="slice-num">32</span>
+                </div>
+
+                <button class="btn btn-outline" onclick="downloadMask()">Download Mask (.npy)</button>
+            </section>
+
+            <!-- Loading -->
+            <div class="loading" id="loading" style="display:none;">
+                <div class="spinner"></div>
+                <p>Running inference...</p>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Fed-Vis — Federated Learning for Medical Image Segmentation</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

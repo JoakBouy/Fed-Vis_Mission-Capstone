@@ -1,0 +1,15 @@
+# Docker build artifacts
+*.pth
+*.pt
+outputs/
+data/
+*.npy
+__pycache__/
+*.pyc
+.git/
+.dvc/
+*.egg-info/
+notebooks/
+tests/
+docs/
+.pytest_cache/

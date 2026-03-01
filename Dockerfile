@@ -1,45 +1,46 @@
 # Fed-Vis Docker Image
 #
-# Build: docker build -t fed-vis:latest .
-# Run:   docker run -p 8000:8000 fed-vis:latest
-# GPU:   docker run --gpus all -p 8000:8000 fed-vis:latest
+# Build: docker build -t fedvis:latest .
+# Run:   docker run -p 8000:8000 fedvis:latest
+# GPU:   docker run --gpus all -p 8000:8000 fedvis:latest
+#
+# With trained checkpoint:
+#   docker run -p 8000:8000 -v ./outputs:/app/outputs fedvis:latest \
+#     uvicorn fedvis.api.app:app --host 0.0.0.0 --port 8000
 
 FROM python:3.10-slim
 
-# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PYTHONPATH=/app/src
 
-# Set work directory
 WORKDIR /app
 
-# Install system dependencies
+# system deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
+    build-essential curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for caching
-COPY requirements.txt .
+# python deps — install torch CPU first (smaller image)
+RUN pip install --no-cache-dir \
+    torch torchvision --index-url https://download.pytorch.org/whl/cpu
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# install the rest
+COPY pyproject.toml ./
+RUN pip install --no-cache-dir \
+    fastapi uvicorn[standard] python-multipart \
+    numpy nibabel scipy scikit-image \
+    hydra-core omegaconf \
+    flwr
 
-# Copy application code
-COPY src/ src/
-COPY configs/ configs/
-COPY pyproject.toml .
+# copy source
+COPY src/ ./src/
+COPY configs/ ./configs/
 
-# Install the package
-RUN pip install --no-cache-dir -e .
-
-# Expose port
 EXPOSE 8000
 
-# Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Run the API server
+# default: run FastAPI inference server
 CMD ["uvicorn", "fedvis.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
