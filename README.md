@@ -45,7 +45,7 @@ fed_vis/
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/fed-vis.git
+git clone https://github.com/JoakBouy/fed-vis_Mission-Capstone.git
 cd fed-vis
 
 # Create virtual environment
@@ -68,7 +68,7 @@ python -m pytest tests/ -v
 
 ```bash
 pip install jupyter
-jupyter notebook notebooks/01_demo_fedvis.ipynb
+jupyter notebook notebooks/demo_fedvis.ipynb
 ```
 
 ### Run the API Server
@@ -113,14 +113,6 @@ docker build -t fed-vis:latest .
 docker run -p 8000:8000 fed-vis:latest
 ```
 
-## Development Roadmap
-
-- [x] Sprint 1: Data pipeline and harmonization
-- [x] Sprint 2: Attention U-Net architecture
-- [x] Sprint 3: FastAPI inference service
-- [ ] Sprint 4: Federated learning with Flower
-- [ ] Sprint 5: React + Three.js visualization
-
 ## References
 
 - Oktay et al. (2018) - Attention U-Net: Learning Where to Look for the Pancreas
@@ -138,3 +130,7 @@ BSc. Software Engineering
 African Leadership University
 
 Supervisor: Dirac Murairi
+
+## Recording
+
+[Link to Demo Recording](https://drive.google.com/file/d/1dFa056kh6jHA9U0cJ6bqLMV3pN7Jd0ru/view?usp=sharing)
