@@ -6,19 +6,20 @@ import torch.nn.functional as F
 
 
 class ConvBlock3D(nn.Module):
-    """(Conv3D => BN => ReLU) x 2"""
+    """(Conv3D => GroupNorm => ReLU) x 2"""
 
     def __init__(self, in_channels: int, out_channels: int, kernel_size: int = 3, padding: int = 1) -> None:
         super().__init__()
+        num_groups = min(8, out_channels)
         self.conv1 = nn.Conv3d(in_channels, out_channels, kernel_size=kernel_size, padding=padding, bias=False)
-        self.bn1 = nn.BatchNorm3d(out_channels)
+        self.norm1 = nn.GroupNorm(num_groups, out_channels)
         self.conv2 = nn.Conv3d(out_channels, out_channels, kernel_size=kernel_size, padding=padding, bias=False)
-        self.bn2 = nn.BatchNorm3d(out_channels)
+        self.norm2 = nn.GroupNorm(num_groups, out_channels)
         self.relu = nn.ReLU(inplace=True)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.relu(self.bn1(self.conv1(x)))
-        x = self.relu(self.bn2(self.conv2(x)))
+        x = self.relu(self.norm1(self.conv1(x)))
+        x = self.relu(self.norm2(self.conv2(x)))
         return x
 
 
@@ -70,11 +71,11 @@ class AttentionGate(nn.Module):
 
         self.W_skip = nn.Sequential(
             nn.Conv3d(skip_channels, inter_channels, kernel_size=1, bias=False),
-            nn.BatchNorm3d(inter_channels),
+            nn.GroupNorm(min(8, inter_channels), inter_channels),
         )
         self.W_gate = nn.Sequential(
             nn.Conv3d(gate_channels, inter_channels, kernel_size=1, bias=False),
-            nn.BatchNorm3d(inter_channels),
+            nn.GroupNorm(min(8, inter_channels), inter_channels),
         )
         self.psi = nn.Sequential(
             nn.Conv3d(inter_channels, 1, kernel_size=1, bias=True),
