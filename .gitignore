@@ -106,3 +106,4 @@ outputs/
 .DS_Store
 Thumbs.db
 docs/mockups
+docs/implementation-fixes.md

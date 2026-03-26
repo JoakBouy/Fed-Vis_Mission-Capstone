@@ -107,7 +107,7 @@ class Trainer:
 
             self.optimizer.zero_grad()
             loss.backward()
-            nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=50.0)
+            nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=5.0)
             self.optimizer.step()
 
             total_loss += loss.item()

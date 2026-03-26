@@ -19,13 +19,13 @@ class AttentionUNet3D(nn.Module):
         self,
         in_channels: int = 1,
         out_channels: int = 1,
-        base_features: int = 64,
+        base_filters: int = 32,
         dropout_rate: float = 0.0,
     ) -> None:
         super().__init__()
 
-        # Feature progression: 64 -> 128 -> 256 -> 512 -> 1024
-        features = [base_features * (2**i) for i in range(5)]
+        # Feature progression: 32 -> 64 -> 128 -> 256 -> 512
+        features = [base_filters * (2**i) for i in range(5)]
 
         # Encoder
         self.encoder1 = ConvBlock3D(in_channels, features[0])
@@ -124,7 +124,7 @@ class AttentionUNet3D(nn.Module):
 def create_attention_unet(
     in_channels: int = 1,
     out_channels: int = 1,
-    base_features: int = 64,
+    base_filters: int = 32,
     pretrained: bool = False,
 ) -> AttentionUNet3D:
     """Factory function for creating Attention U-Net models."""
@@ -134,5 +134,5 @@ def create_attention_unet(
     return AttentionUNet3D(
         in_channels=in_channels,
         out_channels=out_channels,
-        base_features=base_features,
+        base_filters=base_filters,
     )

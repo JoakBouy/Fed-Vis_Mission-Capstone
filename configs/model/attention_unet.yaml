@@ -13,7 +13,7 @@ depth: 4            # Number of encoder/decoder levels
 # Bottleneck: 512 channels
 
 # Normalization
-norm_type: instance  # batch, instance, or group
+norm_type: group     # GroupNorm — stable with small batches (batch_size=2)
 num_groups: 8        # For group norm only
 
 # Activation

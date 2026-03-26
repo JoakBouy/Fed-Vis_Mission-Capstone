@@ -12,16 +12,16 @@ import io
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 import numpy as np
 import torch
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse, StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from fedvis.models.attention_unet import AttentionUNet3D
 
@@ -37,10 +37,10 @@ class HealthResponse(BaseModel):
 class ModelInfoResponse(BaseModel):
     architecture: str
     parameters: int
-    base_features: int
+    base_filters: int
     input_shape: str
 
-class PredictionResponse(BaseModel):
+class PredictionStats(BaseModel):
     success: bool
     input_shape: list[int]
     output_shape: list[int]
@@ -59,19 +59,21 @@ class PredictionRequest(BaseModel):
 model: Optional[AttentionUNet3D] = None
 device: str = "cpu"
 model_loaded: bool = False
-BASE_FEATURES: int = 32
+BASE_FILTERS: int = 32
 
 
 # ── app factory ─────────────────────────────────────────
 
-def create_app(checkpoint_path: Optional[str] = None, base_features: int = 32) -> FastAPI:
-    global model, device, model_loaded, BASE_FEATURES
-    BASE_FEATURES = base_features
+def create_app(checkpoint_path: Optional[str] = None, base_filters: int = 32) -> FastAPI:
+    global model, device, model_loaded, BASE_FILTERS
+    BASE_FILTERS = base_filters
 
     app = FastAPI(
         title="Fed-Vis Inference API",
         description="3D Medical Image Segmentation with Attention U-Net",
         version="0.1.0",
+        docs_url="/api/docs",
+        redoc_url="/api/redoc",
     )
 
     app.add_middleware(
@@ -79,6 +81,7 @@ def create_app(checkpoint_path: Optional[str] = None, base_features: int = 32) -
         allow_origins=["*"],
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=["X-Inference-Time-Ms", "X-Foreground-Voxels", "X-Total-Voxels"],
     )
 
     # serve frontend static files
@@ -93,17 +96,13 @@ def create_app(checkpoint_path: Optional[str] = None, base_features: int = 32) -
 
         try:
             model = AttentionUNet3D(
-                in_channels=1, out_channels=1, base_features=base_features
+                in_channels=1, out_channels=1, base_filters=base_filters
             )
 
             if checkpoint_path and Path(checkpoint_path).exists():
-                ckpt = torch.load(checkpoint_path, map_location=device)
-                if "model" in ckpt:
-                    model.load_state_dict(ckpt["model"])
-                elif "model_state_dict" in ckpt:
-                    model.load_state_dict(ckpt["model_state_dict"])
-                else:
-                    model.load_state_dict(ckpt)
+                ckpt = torch.load(checkpoint_path, map_location=device, weights_only=False)
+                state = ckpt.get("model", ckpt.get("model_state_dict", ckpt))
+                model.load_state_dict(state)
 
             model.to(device)
             model.eval()
@@ -123,7 +122,11 @@ app = create_app()
 
 @app.get("/", include_in_schema=False)
 async def root():
-    return RedirectResponse(url="/docs")
+    """Serve the Doctor's Cockpit UI."""
+    index = Path(__file__).parent / "static" / "index.html"
+    if index.exists():
+        return FileResponse(str(index))
+    return {"message": "Fed-Vis API running. UI not found — check static/ directory."}
 
 
 @app.get("/health", response_model=HealthResponse)
@@ -140,19 +143,23 @@ async def health():
 async def model_info():
     if not model_loaded:
         raise HTTPException(503, "Model not loaded")
-
     n = sum(p.numel() for p in model.parameters())
     return ModelInfoResponse(
         architecture="AttentionUNet3D",
         parameters=n,
-        base_features=BASE_FEATURES,
+        base_filters=BASE_FILTERS,
         input_shape="[B, 1, D, H, W]",
     )
 
 
-@app.post("/predict", response_model=PredictionResponse)
+@app.post("/predict")
 async def predict(file: UploadFile = File(...), threshold: float = 0.5):
-    """Run segmentation on an uploaded .npy volume."""
+    """Run segmentation on an uploaded .npy volume.
+
+    Returns the binary mask as a .npy file download.
+    Stats are included in response headers:
+      X-Inference-Time-Ms, X-Foreground-Voxels, X-Total-Voxels
+    """
     if not model_loaded:
         raise HTTPException(503, "Model not loaded")
 
@@ -162,13 +169,12 @@ async def predict(file: UploadFile = File(...), threshold: float = 0.5):
     except Exception as e:
         raise HTTPException(400, f"Failed to read .npy: {e}")
 
-    # add batch/channel dims
     if volume.ndim == 3:
         volume = volume[np.newaxis, np.newaxis, ...]
     elif volume.ndim == 4:
         volume = volume[np.newaxis, ...]
     elif volume.ndim != 5:
-        raise HTTPException(400, f"Bad shape: {volume.shape}")
+        raise HTTPException(400, f"Unsupported shape: {volume.shape}")
 
     tensor = torch.from_numpy(volume.astype(np.float32)).to(device)
 
@@ -176,47 +182,11 @@ async def predict(file: UploadFile = File(...), threshold: float = 0.5):
     with torch.no_grad():
         out = model(tensor)
         prob = torch.sigmoid(out)
-    elapsed = (time.perf_counter() - t0) * 1000
+    elapsed_ms = round((time.perf_counter() - t0) * 1000, 2)
 
     mask = (prob > threshold).cpu().numpy().astype(np.uint8)
     fg = int(mask.sum())
     total = int(mask.size)
-
-    return PredictionResponse(
-        success=True,
-        input_shape=list(volume.shape),
-        output_shape=list(mask.shape),
-        inference_time_ms=round(elapsed, 2),
-        foreground_voxels=fg,
-        total_voxels=total,
-        tumor_pct=round(fg / total * 100, 2),
-    )
-
-
-@app.post("/predict/mask")
-async def predict_mask(file: UploadFile = File(...), threshold: float = 0.5):
-    """Run segmentation and return the mask as a downloadable .npy file."""
-    if not model_loaded:
-        raise HTTPException(503, "Model not loaded")
-
-    try:
-        data = await file.read()
-        volume = np.load(io.BytesIO(data))
-    except Exception as e:
-        raise HTTPException(400, f"Failed to read .npy: {e}")
-
-    if volume.ndim == 3:
-        volume = volume[np.newaxis, np.newaxis, ...]
-    elif volume.ndim == 4:
-        volume = volume[np.newaxis, ...]
-
-    tensor = torch.from_numpy(volume.astype(np.float32)).to(device)
-
-    with torch.no_grad():
-        out = model(tensor)
-        prob = torch.sigmoid(out)
-
-    mask = (prob > threshold).cpu().numpy().astype(np.uint8)
 
     buf = io.BytesIO()
     np.save(buf, mask)
@@ -225,13 +195,18 @@ async def predict_mask(file: UploadFile = File(...), threshold: float = 0.5):
     return StreamingResponse(
         buf,
         media_type="application/octet-stream",
-        headers={"Content-Disposition": "attachment; filename=segmentation.npy"},
+        headers={
+            "Content-Disposition": "attachment; filename=segmentation.npy",
+            "X-Inference-Time-Ms": str(elapsed_ms),
+            "X-Foreground-Voxels": str(fg),
+            "X-Total-Voxels": str(total),
+        },
     )
 
 
-@app.post("/predict/json", response_model=PredictionResponse)
+@app.post("/predict/json", response_model=PredictionStats)
 async def predict_json(req: PredictionRequest):
-    """Run inference from JSON (for small test volumes)."""
+    """Run inference from a JSON payload (for testing with small volumes)."""
     if not model_loaded:
         raise HTTPException(503, "Model not loaded")
 
@@ -249,17 +224,17 @@ async def predict_json(req: PredictionRequest):
     with torch.no_grad():
         out = model(tensor)
         prob = torch.sigmoid(out)
-    elapsed = (time.perf_counter() - t0) * 1000
+    elapsed_ms = round((time.perf_counter() - t0) * 1000, 2)
 
     mask = (prob > req.threshold).cpu().numpy()
     fg = int(mask.sum())
     total = int(mask.size)
 
-    return PredictionResponse(
+    return PredictionStats(
         success=True,
         input_shape=list(volume.shape),
         output_shape=list(mask.shape),
-        inference_time_ms=round(elapsed, 2),
+        inference_time_ms=elapsed_ms,
         foreground_voxels=fg,
         total_voxels=total,
         tumor_pct=round(fg / total * 100, 2),
@@ -274,9 +249,9 @@ if __name__ == "__main__":
 
     p = argparse.ArgumentParser()
     p.add_argument("--checkpoint", type=str, default=None)
-    p.add_argument("--features", type=int, default=32)
+    p.add_argument("--filters", type=int, default=32)
     p.add_argument("--port", type=int, default=8000)
     args = p.parse_args()
 
-    app = create_app(checkpoint_path=args.checkpoint, base_features=args.features)
+    app = create_app(checkpoint_path=args.checkpoint, base_filters=args.filters)
     uvicorn.run(app, host="0.0.0.0", port=args.port)

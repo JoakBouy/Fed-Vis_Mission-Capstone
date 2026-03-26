@@ -1,46 +1,48 @@
-# Federated Learning Configuration
+# Federated Learning Configuration  (v7 — FedProx + GroupNorm)
 
 # Flower server settings
 server:
   address: "0.0.0.0:8080"
-  num_rounds: 20
+  num_rounds: 45
 
 # Client configuration
 client:
-  num_clients: 3
-  min_fit_clients: 3
-  min_evaluate_clients: 3
-  fraction_fit: 1.0       # Fraction of clients for training
-  fraction_evaluate: 1.0  # Fraction for evaluation
+  num_clients: 2
+  min_fit_clients: 2
+  min_evaluate_clients: 2
+  fraction_fit: 1.0
+  fraction_evaluate: 1.0
 
-# Client assignments
+# Active federation nodes (KNH-Brain + AKU-Prostate)
 clients:
   - id: brain
+    name: KNH-Brain
     dataset: fets
-    site: "1"  # Use site 1 for brain client
+    subdir: FeTS2022
+    norm: zscore
+    max_samples: 200
   - id: prostate
+    name: AKU-Prostate
     dataset: prostate
-    site: BIDMC
-  - id: lung
-    dataset: lung
-    site: "1"
+    subdir: Prostate
+    norm: percentile
+    max_samples: 120
 
-# Aggregation strategy
+# Aggregation: FedProx proximal term is applied client-side;
+# server aggregation remains standard weighted FedAvg.
 strategy:
-  name: fedavg  # fedavg, fedprox, fedadam
-  # FedProx settings:
-  # proximal_mu: 0.01
-  # FedAdam settings:
-  # server_lr: 0.01
-  # beta1: 0.9
-  # beta2: 0.99
+  name: fedprox
+  proximal_mu: 0.01      # mu=0 reverts to standard FedAvg
 
 # Local training per round
-local_epochs: 1
-local_batch_size: ${training.batch_size}
+local_epochs: 5
+local_batch_size: 2
 
-# Privacy (for future extension)
+# Learning-rate schedule: linear warmup + cosine decay
+lr_schedule:
+  base_lr: 3.0e-4
+  warmup_rounds: 3
+
+# Privacy (future extension)
 privacy:
   differential_privacy: false
-  # noise_multiplier: 1.0
-  # max_grad_norm: 1.0

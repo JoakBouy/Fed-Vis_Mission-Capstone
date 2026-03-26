@@ -24,6 +24,9 @@ scikit-image>=0.21.0
 matplotlib>=3.7.0
 tqdm>=4.66.0
 
+# Federated Learning
+flwr>=1.5.0
+
 # Training Utils
 tensorboard>=2.14.0
 

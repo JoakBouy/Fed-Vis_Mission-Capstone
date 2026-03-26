@@ -59,7 +59,7 @@ def parse_args():
     p.add_argument('--site', type=str, default='1')
     p.add_argument('--epochs', type=int, default=100)
     p.add_argument('--batch_size', type=int, default=2)
-    p.add_argument('--lr', type=float, default=1e-4)
+    p.add_argument('--lr', type=float, default=3e-4)
     p.add_argument('--features', type=int, default=32,
                    help='base channel count in the encoder')
     p.add_argument('--seed', type=int, default=42)
