@@ -1,0 +1,101 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.0.2, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Snhu\OneDrive - SNHU\Documents\alu-machine_learning\Fed-Vis_Mission-Capstone
+configfile: pyproject.toml
+plugins: anyio-4.13.0, hydra-core-1.3.2, cov-7.1.0
+collecting ... collected 30 items
+
+tests/test_models/test_attention_unet.py::TestConvBlock3D::test_shape_preservation PASSED [  3%]
+tests/test_models/test_attention_unet.py::TestConvBlock3D::test_channel_expansion PASSED [  6%]
+tests/test_models/test_attention_unet.py::TestConvBlock3D::test_gradient_flow PASSED [ 10%]
+tests/test_models/test_attention_unet.py::TestDownBlock::test_spatial_downsampling PASSED [ 13%]
+tests/test_models/test_attention_unet.py::TestDownBlock::test_multiple_levels PASSED [ 16%]
+tests/test_models/test_attention_unet.py::TestUpBlock::test_spatial_upsampling PASSED [ 20%]
+tests/test_models/test_attention_unet.py::TestUpBlock::test_skip_concatenation PASSED [ 23%]
+tests/test_models/test_attention_unet.py::TestAttentionGate::test_output_shape PASSED [ 26%]
+tests/test_models/test_attention_unet.py::TestAttentionGate::test_attention_range PASSED [ 30%]
+tests/test_models/test_attention_unet.py::TestAttentionGate::test_gradient_flow PASSED [ 33%]
+tests/test_models/test_attention_unet.py::TestAttentionUNet3D::test_forward_pass ERROR [ 36%]
+tests/test_models/test_attention_unet.py::TestAttentionUNet3D::test_attention_maps_return ERROR [ 40%]
+tests/test_models/test_attention_unet.py::TestAttentionUNet3D::test_get_attention_maps ERROR [ 43%]
+tests/test_models/test_attention_unet.py::TestAttentionUNet3D::test_count_parameters ERROR [ 46%]
+tests/test_models/test_attention_unet.py::TestAttentionUNet3D::test_different_input_sizes ERROR [ 50%]
+tests/test_models/test_attention_unet.py::TestAttentionUNet3D::test_batch_independence ERROR [ 53%]
+tests/test_models/test_attention_unet.py::TestCreateAttentionUNet::test_default_creation PASSED [ 56%]
+tests/test_models/test_attention_unet.py::TestCreateAttentionUNet::test_custom_channels PASSED [ 60%]
+tests/test_models/test_attention_unet.py::TestCreateAttentionUNet::test_pretrained_not_implemented PASSED [ 63%]
+tests/test_models/test_attention_unet.py::TestDiceLoss::test_perfect_prediction PASSED [ 66%]
+tests/test_models/test_attention_unet.py::TestDiceLoss::test_worst_prediction PASSED [ 70%]
+tests/test_models/test_attention_unet.py::TestDiceLoss::test_gradient_flow PASSED [ 73%]
+tests/test_models/test_attention_unet.py::TestCombinedLoss::test_combined_loss_range PASSED [ 76%]
+tests/test_models/test_attention_unet.py::TestCombinedLoss::test_component_tracking PASSED [ 80%]
+tests/test_models/test_attention_unet.py::TestCombinedLoss::test_weight_normalization PASSED [ 83%]
+tests/test_models/test_attention_unet.py::TestDiceCoefficient::test_perfect_overlap PASSED [ 86%]
+tests/test_models/test_attention_unet.py::TestDiceCoefficient::test_no_overlap PASSED [ 90%]
+tests/test_models/test_attention_unet.py::TestDiceCoefficient::test_partial_overlap PASSED [ 93%]
+tests/test_models/test_attention_unet.py::TestGPUCompatibility::test_model_on_gpu SKIPPED [ 96%]
+tests/test_models/test_attention_unet.py::TestGPUCompatibility::test_loss_on_gpu SKIPPED [100%]
+
+=================================== ERRORS ====================================
+___________ ERROR at setup of TestAttentionUNet3D.test_forward_pass ___________
+tests\test_models\test_attention_unet.py:141: in model
+    return AttentionUNet3D(in_channels=1, out_channels=1, base_features=32)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: AttentionUNet3D.__init__() got an unexpected keyword argument 'base_features'. Did you mean 'base_filters'?
+______ ERROR at setup of TestAttentionUNet3D.test_attention_maps_return _______
+tests\test_models\test_attention_unet.py:141: in model
+    return AttentionUNet3D(in_channels=1, out_channels=1, base_features=32)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: AttentionUNet3D.__init__() got an unexpected keyword argument 'base_features'. Did you mean 'base_filters'?
+________ ERROR at setup of TestAttentionUNet3D.test_get_attention_maps ________
+tests\test_models\test_attention_unet.py:141: in model
+    return AttentionUNet3D(in_channels=1, out_channels=1, base_features=32)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: AttentionUNet3D.__init__() got an unexpected keyword argument 'base_features'. Did you mean 'base_filters'?
+_________ ERROR at setup of TestAttentionUNet3D.test_count_parameters _________
+tests\test_models\test_attention_unet.py:141: in model
+    return AttentionUNet3D(in_channels=1, out_channels=1, base_features=32)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: AttentionUNet3D.__init__() got an unexpected keyword argument 'base_features'. Did you mean 'base_filters'?
+______ ERROR at setup of TestAttentionUNet3D.test_different_input_sizes _______
+tests\test_models\test_attention_unet.py:141: in model
+    return AttentionUNet3D(in_channels=1, out_channels=1, base_features=32)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: AttentionUNet3D.__init__() got an unexpected keyword argument 'base_features'. Did you mean 'base_filters'?
+________ ERROR at setup of TestAttentionUNet3D.test_batch_independence ________
+tests\test_models\test_attention_unet.py:141: in model
+    return AttentionUNet3D(in_channels=1, out_channels=1, base_features=32)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: AttentionUNet3D.__init__() got an unexpected keyword argument 'base_features'. Did you mean 'base_filters'?
+=============================== tests coverage ================================
+_______________ coverage: platform win32, python 3.14.0-final-0 _______________
+
+Name                                    Stmts   Miss  Cover   Missing
+---------------------------------------------------------------------
+src\fedvis\__init__.py                      1      0   100%
+src\fedvis\api\__init__.py                  2      2     0%   3-5
+src\fedvis\api\app.py                     120    120     0%   11-257
+src\fedvis\data.py                        126    126     0%   8-252
+src\fedvis\federation\__init__.py           0      0   100%
+src\fedvis\federation\client.py            84     84     0%   10-139
+src\fedvis\federation\server.py            10     10     0%   3-31
+src\fedvis\models\__init__.py               4      0   100%
+src\fedvis\models\attention_unet.py        60      7    88%   94, 99, 103-115
+src\fedvis\models\blocks.py                56      2    96%   46, 55
+src\fedvis\models\losses.py                52      8    85%   33-37, 40-42
+src\fedvis\scripts\__init__.py              0      0   100%
+src\fedvis\scripts\train_federated.py      89     89     0%   15-220
+src\fedvis\scripts\train_local.py          78     78     0%   13-182
+src\fedvis\training\__init__.py             0      0   100%
+src\fedvis\training\trainer.py             89     89     0%   3-155
+---------------------------------------------------------------------
+TOTAL                                     771    615    20%
+=========================== short test summary info ===========================
+ERROR tests/test_models/test_attention_unet.py::TestAttentionUNet3D::test_forward_pass - TypeError: AttentionUNet3D.__init__() got an unexpected keyword argument 'base_features'. Did you mean 'base_filters'?
+ERROR tests/test_models/test_attention_unet.py::TestAttentionUNet3D::test_attention_maps_return - TypeError: AttentionUNet3D.__init__() got an unexpected keyword argument 'base_features'. Did you mean 'base_filters'?
+ERROR tests/test_models/test_attention_unet.py::TestAttentionUNet3D::test_get_attention_maps - TypeError: AttentionUNet3D.__init__() got an unexpected keyword argument 'base_features'. Did you mean 'base_filters'?
+ERROR tests/test_models/test_attention_unet.py::TestAttentionUNet3D::test_count_parameters - TypeError: AttentionUNet3D.__init__() got an unexpected keyword argument 'base_features'. Did you mean 'base_filters'?
+ERROR tests/test_models/test_attention_unet.py::TestAttentionUNet3D::test_different_input_sizes - TypeError: AttentionUNet3D.__init__() got an unexpected keyword argument 'base_features'. Did you mean 'base_filters'?
+ERROR tests/test_models/test_attention_unet.py::TestAttentionUNet3D::test_batch_independence - TypeError: AttentionUNet3D.__init__() got an unexpected keyword argument 'base_features'. Did you mean 'base_filters'?
+================== 22 passed, 2 skipped, 6 errors in 20.13s ===================

@@ -138,7 +138,7 @@ class TestAttentionUNet3D:
     @pytest.fixture
     def model(self):
         """Create model for testing."""
-        return AttentionUNet3D(in_channels=1, out_channels=1, base_features=32)
+        return AttentionUNet3D(in_channels=1, out_channels=1, base_filters=32)
 
     def test_forward_pass(self, model):
         """Model should produce output of same spatial size as input."""
