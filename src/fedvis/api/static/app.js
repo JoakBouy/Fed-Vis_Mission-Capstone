@@ -195,17 +195,44 @@ function drawSlice(canvasId, volume, sliceIdx) {
     const imageData = ctx.createImageData(w, h);
     const offset = clampedSlice * h * w;
 
+    let minVal = Infinity, maxVal = -Infinity;
+    if (canvasId !== 'canvas-mask') {
+        for (let i = 0; i < h * w; i++) {
+            let v = volume.data ? volume.data[offset + i] : volume[offset + i];
+            if (v < minVal) minVal = v;
+            if (v > maxVal) maxVal = v;
+        }
+    }
+    const range = (maxVal - minVal) || 1;
+
     for (let i = 0; i < h * w; i++) {
         let val = volume.data ? volume.data[offset + i] : volume[offset + i];
-
-        // normalize to 0-255
-        if (val <= 1.0) val = val * 255;
+        
+        if (canvasId !== 'canvas-mask') {
+            // Dynamic slice contrast for Z-scored MRI
+            val = ((val - minVal) / range) * 255;
+        } else {
+            // Standard mask 0-1 scaling
+            val = val * 255;
+        }
         val = Math.max(0, Math.min(255, val));
 
         const px = i * 4;
-        imageData.data[px] = val;
-        imageData.data[px + 1] = val;
-        imageData.data[px + 2] = val;
+        if (canvasId === 'canvas-mask' && val > 128) {
+            // Matplotlib 'Reds' colormap: Deep Maroon for Tumor
+            imageData.data[px] = 110;
+            imageData.data[px + 1] = 5;
+            imageData.data[px + 2] = 20;
+        } else if (canvasId === 'canvas-mask') {
+            // Matplotlib 'Reds' colormap: Seashell for Background
+            imageData.data[px] = 255;
+            imageData.data[px + 1] = 245;
+            imageData.data[px + 2] = 240;
+        } else {
+            imageData.data[px] = val;
+            imageData.data[px + 1] = val;
+            imageData.data[px + 2] = val;
+        }
         imageData.data[px + 3] = 255;
     }
 
@@ -231,19 +258,29 @@ function drawOverlay(sliceIdx) {
     const mShape = maskVolume.shape || inferShape(maskVolume.length);
     const mOffset = s * mShape[1] * mShape[2];
 
+    let minVal = Infinity, maxVal = -Infinity;
+    for (let i = 0; i < h * w; i++) {
+        let v = inputVolume.data ? inputVolume.data[offset + i] : inputVolume[offset + i];
+        if (v < minVal) minVal = v;
+        if (v > maxVal) maxVal = v;
+    }
+    const range = (maxVal - minVal) || 1;
+
     for (let i = 0; i < h * w; i++) {
         let val = inputVolume.data ? inputVolume.data[offset + i] : inputVolume[offset + i];
-        if (val <= 1.0) val = val * 255;
+        // Dynamic slice contrast for Z-scored MRI
+        val = ((val - minVal) / range) * 255;
         val = Math.max(0, Math.min(255, val));
 
         let maskVal = maskVolume.data ? maskVolume.data[mOffset + i] : maskVolume[mOffset + i];
 
         const px = i * 4;
         if (maskVal > 0.5) {
-            // red overlay for tumor
-            imageData.data[px] = Math.min(255, val * 0.4 + 200);
-            imageData.data[px + 1] = val * 0.3;
-            imageData.data[px + 2] = val * 0.3;
+            // Matplotlib 'Reds' colormap: alpha blend maroon over MRI
+            // 45% overlay opacity
+            imageData.data[px] = val * 0.55 + 110 * 0.45;
+            imageData.data[px + 1] = val * 0.55 + 5 * 0.45;
+            imageData.data[px + 2] = val * 0.55 + 20 * 0.45;
         } else {
             imageData.data[px] = val;
             imageData.data[px + 1] = val;

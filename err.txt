@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import sys, traceback; f = open('err.txt', 'w'); sys.stderr = f; import fedvis.api.app
+                                                                     ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Snhu\OneDrive - SNHU\Documents\alu-machine_learning\Fed-Vis_Mission-Capstone\src\fedvis\api\__init__.py", line 3, in <module>
+    from fedvis.api.app import app, create_app
+ImportError: cannot import name 'create_app' from 'fedvis.api.app' (C:\Users\Snhu\OneDrive - SNHU\Documents\alu-machine_learning\Fed-Vis_Mission-Capstone\src\fedvis\api\app.py)

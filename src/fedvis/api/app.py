@@ -17,7 +17,7 @@ from typing import Optional
 import numpy as np
 import torch
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, UploadFile, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -62,61 +62,27 @@ model_loaded: bool = False
 BASE_FILTERS: int = 32
 
 
-# ── app factory ─────────────────────────────────────────
 
-def create_app(checkpoint_path: Optional[str] = None, base_filters: int = 32) -> FastAPI:
-    global model, device, model_loaded, BASE_FILTERS
-    BASE_FILTERS = base_filters
+app = FastAPI(
+    title="Fed-Vis Inference API",
+    description="3D Medical Image Segmentation with Attention U-Net",
+    version="0.1.0",
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+)
 
-    app = FastAPI(
-        title="Fed-Vis Inference API",
-        description="3D Medical Image Segmentation with Attention U-Net",
-        version="0.1.0",
-        docs_url="/api/docs",
-        redoc_url="/api/redoc",
-    )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["X-Inference-Time-Ms", "X-Foreground-Voxels", "X-Total-Voxels"],
+)
 
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_methods=["*"],
-        allow_headers=["*"],
-        expose_headers=["X-Inference-Time-Ms", "X-Foreground-Voxels", "X-Total-Voxels"],
-    )
-
-    # serve frontend static files
-    static_dir = Path(__file__).parent / "static"
-    if static_dir.exists():
-        app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
-
-    @app.on_event("startup")
-    async def startup():
-        global model, device, model_loaded
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-
-        try:
-            model = AttentionUNet3D(
-                in_channels=1, out_channels=1, base_filters=base_filters
-            )
-
-            if checkpoint_path and Path(checkpoint_path).exists():
-                ckpt = torch.load(checkpoint_path, map_location=device, weights_only=False)
-                state = ckpt.get("model", ckpt.get("model_state_dict", ckpt))
-                model.load_state_dict(state)
-
-            model.to(device)
-            model.eval()
-            model_loaded = True
-            print(f"Model ready on {device}")
-        except Exception as e:
-            print(f"Model load failed: {e}")
-            model_loaded = False
-
-    return app
-
-
-app = create_app()
-
+# serve frontend static files
+static_dir = Path(__file__).parent / "static"
+if static_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
 # ── routes ──────────────────────────────────────────────
 
@@ -253,5 +219,29 @@ if __name__ == "__main__":
     p.add_argument("--port", type=int, default=8000)
     args = p.parse_args()
 
-    app = create_app(checkpoint_path=args.checkpoint, base_filters=args.filters)
+    BASE_FILTERS = args.filters
+
+    @app.on_event("startup")
+    async def startup():
+        global model, device, model_loaded
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+
+        try:
+            model = AttentionUNet3D(
+                in_channels=1, out_channels=1, base_filters=BASE_FILTERS
+            )
+
+            if args.checkpoint and Path(args.checkpoint).exists():
+                ckpt = torch.load(args.checkpoint, map_location=device, weights_only=False)
+                state = ckpt.get("model", ckpt.get("model_state_dict", ckpt))
+                model.load_state_dict(state)
+
+            model.to(device)
+            model.eval()
+            model_loaded = True
+            print(f"Model ready on {device}")
+        except Exception as e:
+            print(f"Model load failed: {e}")
+            model_loaded = False
+
     uvicorn.run(app, host="0.0.0.0", port=args.port)
