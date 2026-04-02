@@ -93,8 +93,78 @@
 
         <!-- Footer -->
         <footer class="footer">
-            <p>Fed-Vis — Federated Learning for Medical Image Segmentation</p>
+            <p>Fed-Vis — Federated Learning for Medical Image Segmentation &nbsp;·&nbsp;
+               <a href="#" class="footer-link" onclick="showLegalModal(); return false;">EULA &amp; Privacy Policy</a>
+            </p>
         </footer>
+    </div>
+
+    <!-- EULA & Privacy Policy Modal -->
+    <div class="modal-backdrop" id="legal-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modal-title">EULA &amp; Privacy Policy</h2>
+                <p class="modal-subtitle">Fed-Vis — Research &amp; Educational Use</p>
+            </div>
+
+            <div class="modal-body">
+                <!-- EULA -->
+                <h3 class="section-title">End-User Licence Agreement (EULA)</h3>
+
+                <div class="clause">
+                    <h4>Clause 1 — Scope of Permitted Use</h4>
+                    <p>This system is licensed exclusively for <strong>research and educational purposes</strong>. Users may not rely on the system's outputs for clinical diagnosis, treatment planning, or any medical decision affecting patient care. The model has not undergone clinical validation, and its performance — particularly on the Prostate node — does not meet the threshold required for safe clinical deployment.</p>
+                </div>
+
+                <div class="clause">
+                    <h4>Clause 2 — Disclaimer of Clinical Liability</h4>
+                    <p>The developer assumes <strong>no liability</strong> for clinical outcomes arising from the use or misuse of the system's outputs. This reflects the system's current maturity: without prospective clinical trials and regulatory approval from bodies such as Kenya's Pharmacy and Poisons Board, it would be irresponsible to accept clinical liability.</p>
+                </div>
+
+                <div class="clause">
+                    <h4>Clause 3 — Intellectual Property</h4>
+                    <p>The system's source code, trained model weights, and interface design are the intellectual property of the developer. Open-source components (Flower, PyTorch, MONAI, React, Three.js) are used under their respective licences and attributed in the codebase. Users may not redistribute or commercialise the system without written permission.</p>
+                </div>
+
+                <div class="clause">
+                    <h4>Clause 4 — Modification and Termination</h4>
+                    <p>The developer reserves the right to modify or discontinue the system at any time. Users will be notified of material changes. In a medical context this clause also serves an ethical function: if a vulnerability or bias is discovered, the developer must retain the authority to withdraw the system immediately.</p>
+                </div>
+
+                <!-- Privacy Policy -->
+                <h3 class="section-title" style="margin-top:28px;">Privacy Policy</h3>
+
+                <div class="clause">
+                    <h4>Clause 1 — Types of Data Processed</h4>
+                    <p>In the current research configuration, the system processes only <strong>de-identified volumetric medical images</strong> (NIfTI format) from publicly available datasets. No personally identifiable information (PII) is collected, stored, or transmitted. A future production deployment would require this policy to be updated to cover any patient data processed at hospital nodes.</p>
+                </div>
+
+                <div class="clause">
+                    <h4>Clause 2 — Legal Basis for Processing</h4>
+                    <p>Processing is conducted on the basis of legitimate research interest, authorised by the ALU Research Ethics Committee under <strong>Approval Code J26BSE103</strong>. This aligns with Rwanda's Law N°058/2021 (Article 9), which recognises research as a lawful basis for processing subject to institutional authorisation.</p>
+                </div>
+
+                <div class="clause">
+                    <h4>Clause 3 — Data Storage and Security</h4>
+                    <p>All training data remains at the originating node and is never centralised. Model weight updates are transmitted to the aggregation server over standard network protocols. The current prototype uses standard HTTPS but does not implement additional encryption layers; a production deployment would require end-to-end encryption of weight updates.</p>
+                </div>
+
+                <div class="clause">
+                    <h4>Clause 4 — Data Subject Rights</h4>
+                    <p>Since the system currently processes only de-identified public datasets, individual data subject rights (access, rectification, erasure) are not directly exercisable. The system's design anticipates a production context where these rights would be honoured at the hospital node level. A contact address for data subject enquiries is available, routing to the developer and the relevant institutional data protection officer.</p>
+                </div>
+
+                <div class="clause">
+                    <h4>Clause 5 — Data Retention</h4>
+                    <p>Training data is retained only for the duration of the research project. Model weights and evaluation metrics are retained for reproducibility purposes. No data is retained beyond what is necessary for the stated research purpose, consistent with the data minimisation principles in the Kenya DPA, Rwanda's data protection law, and the GDPR.</p>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <p class="modal-notice">By clicking <strong>Accept &amp; Continue</strong> you confirm that you have read these terms and agree to use this system for research and educational purposes only.</p>
+                <button class="btn btn-primary" onclick="acceptLegal()">Accept &amp; Continue</button>
+            </div>
+        </div>
     </div>
 
     <script src="/static/app.js"></script>

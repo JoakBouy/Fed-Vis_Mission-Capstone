@@ -16,6 +16,11 @@ document.addEventListener('DOMContentLoaded', () => {
     checkHealth();
     setupDropzone();
     setupSlider();
+
+    // Show EULA/Privacy modal on first load of each browser session
+    if (!sessionStorage.getItem('legal-accepted')) {
+        showLegalModal();
+    }
 });
 
 async function checkHealth() {
@@ -375,6 +380,17 @@ function parseNpyBuffer(buffer) {
 
     const result = { data, shape: vizShape, fullShape: shape, length: data.length };
     return result;
+}
+
+// ── legal modal ────────────────────────────────────────
+
+function showLegalModal() {
+    document.getElementById('legal-modal').classList.add('open');
+}
+
+function acceptLegal() {
+    sessionStorage.setItem('legal-accepted', '1');
+    document.getElementById('legal-modal').classList.remove('open');
 }
 
 // ── download ───────────────────────────────────────────
